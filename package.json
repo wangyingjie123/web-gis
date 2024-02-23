@@ -1,0 +1,30 @@
+{
+  "name": "web-gis",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@geostarters/mapbox-gl-draw-rectangle-assisted-mode": "^3.0.4",
+    "@mapbox/geojson-extent": "^1.0.1",
+    "@mapbox/mapbox-gl-draw": "^1.4.3",
+    "@turf/area": "^6.5.0",
+    "@turf/turf": "^6.5.0",
+    "mapbox-gl-draw-rectangle-mode": "^1.0.4",
+    "mapbox-gl-draw-rectangle-restrict-area": "^3.1.5",
+    "maplibre-gl": "^4.0.0",
+    "ol": "^8.2.0",
+    "vue": "^3.4.15",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.3",
+    "prettier": "^3.2.4",
+    "sass": "^1.70.0",
+    "vite": "^5.0.12"
+  }
+}
