@@ -58,19 +58,19 @@ const initMap = () => {
   map.addControl(new maplibregl.NavigationControl());
   map.on('load', () => {
     console.log('map load');
-    // map.addLayer({
-    //   id: 'wms-layer',
-    //   type: 'raster',
-    //   source: {
-    //     type: 'raster',
-    //     tiles: [
-    //       '/geoserver/image-test/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&STYLES&LAYERS=image-test%3ADOM_final_3857&exceptions=application%2Fvnd.ogc.se_inimage&SRS=EPSG%3A3857&WIDTH=768&HEIGHT=424&BBOX={bbox-epsg-3857}',
-    //     ],
-    //     tileSize: 256,
-    //     maxzoom: 22,
-    //   },
-    //   paint: {},
-    // });
+    map.addLayer({
+      id: 'wms-layer',
+      type: 'raster',
+      source: {
+        type: 'raster',
+        tiles: [
+          '/geoserver/image-test/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&STYLES&LAYERS=image-test%3ADOM_final_3857&exceptions=application%2Fvnd.ogc.se_inimage&SRS=EPSG%3A3857&WIDTH=768&HEIGHT=424&BBOX={bbox-epsg-3857}',
+        ],
+        tileSize: 256,
+        maxzoom: 22,
+      },
+      paint: {},
+    });
 
     // 设置地图视图范围（bbox）
     const minLng = 119.29605865480914;
@@ -203,7 +203,7 @@ onMounted(() => {
     &_text {
       white-space: nowrap;
       &.areaover {
-        color: red;
+        color: #ff0000;
       }
     }
   }
