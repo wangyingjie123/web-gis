@@ -12,7 +12,9 @@
         </div>
       </div>
       <div class="maplibregl-area" :style="areaStyle">
-        <p class="maplibregl-area_text">实时面积：{{ areatext }}</p>
+        <p class="maplibregl-area_text" :class="areaSize > 2 * 1e6 ? 'areaover' : ''">
+          实时面积：{{ Math.floor((areaSize / 1e6) * 100) / 100 }}平方公里
+        </p>
         <p class="maplibregl-area_text">限制面积： 2平方公里</p>
       </div>
     </div>
@@ -30,7 +32,7 @@ import CustomDraw from './custom-draw.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '@/assets/styles/mapbox-gl-draw.css';
 
-const areatext = ref('');
+const areaSize = ref(0);
 const isThree = ref(false);
 
 const areaStyle = reactive({
@@ -53,8 +55,6 @@ const initMap = () => {
     center: [119.313, 41.297], // 设置地图初始中心
     zoom: 15, // 设置地图初始缩放级别
   });
-  // map.dragRotate.enable(); // 右键切换倾斜角
-  // map.dragPan.enable(); // 平移
   map.addControl(new maplibregl.NavigationControl());
   map.on('load', () => {
     console.log('map load');
@@ -113,7 +113,7 @@ const initMap = () => {
     if (state.selectedCoordPaths.length > 0) {
       showArea = true;
       const currentArea = area(state.feature);
-      areatext.value = `${Math.floor((currentArea / 1e6) * 100) / 100} 平方公里`;
+      areaSize.value = currentArea;
       if (currentArea > 2 * 1e6) {
         state.feature.sizeExceeded = true;
         state.feature.properties.size_exceed = true;
@@ -125,11 +125,11 @@ const initMap = () => {
     } else {
       this.dragFeature(state, e, delta);
     }
-
     state.dragMoveLocation = e.lngLat;
   };
   customDraw = new CustomDraw({ map, draw, exceedCallback, areaChangedCallback });
 };
+// 切换2D/3D
 const setPitch = () => {
   if (isThree.value) {
     map.setPitch(0);
@@ -139,20 +139,20 @@ const setPitch = () => {
     isThree.value = true;
   }
 };
-
+// 面积超出回调
 const exceedCallback = (areaValue) => {
   console.log('面积超出', areaValue);
 };
+// 面积改变回调
 const areaChangedCallback = (areaValue) => {
   showArea = true;
-  const changeArea = areaValue / 1e6;
-  areatext.value = `${Math.floor(changeArea * 100) / 100} 平方公里`;
+  areaSize.value = areaValue;
 };
 // 画完以后返回feature的json数据
 const finishDraw = () => {
   showArea = false;
   areaStyle.display = 'none';
-  areatext.value = '';
+  areaSize.value = 0;
 };
 // 画多边形
 const addPolygon = () => {
@@ -162,6 +162,7 @@ const addPolygon = () => {
 const addRectangle = () => {
   customDraw.addRectangle(finishDraw);
 };
+// 清除
 const trash = () => {
   customDraw.trash();
 };
@@ -201,6 +202,9 @@ onMounted(() => {
     display: none;
     &_text {
       white-space: nowrap;
+      &.areaover {
+        color: red;
+      }
     }
   }
 }
