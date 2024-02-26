@@ -3,11 +3,11 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 export const routes = [
   {
     path: '/',
-    component: () => import('@/pages/openlayers/index.vue'),
+    component: () => import('@/pages/openlayers/openlayers-map.vue'),
   },
   {
     path: '/maplibre',
-    component: () => import('@/pages/maplibre/index.vue'),
+    component: () => import('@/pages/maplibre/mapbox-draw.vue'),
   },
 ];
 

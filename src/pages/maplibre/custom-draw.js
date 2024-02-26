@@ -29,9 +29,7 @@ export default class CustomDraw {
       this.points = e.points;
     });
 
-    this._map.on('draw.modechange', (e) => {
-      console.log(e.mode, 'modechange');
-    });
+    this._map.on('draw.modechange', () => {});
   }
 
   // 进入矩形模式

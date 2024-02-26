@@ -28,7 +28,7 @@ const initTileMap = () => {
   });
   // 初始渲染范围
 
-  const map = new Map({
+  new Map({
     target: 'map1',
     layers: [tileSource],
     view: new View({
@@ -49,7 +49,7 @@ const initTif = () => {
     ],
   });
 
-  const map2 = new Map({
+  new Map({
     target: 'map2',
     layers: [
       new TileLayer({

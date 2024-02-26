@@ -3,15 +3,18 @@
     <div id="map" class="maplibregl-container">
       <div class="maplibregl-ctrl-top-right maplibregl-custom_ctrl">
         <div class="maplibregl-ctrl maplibregl-ctrl-group">
-          <button @click="setPitch" class="maplibregl-draw_ctrl-draw-btn maplibregl-custom_ctrl-pitch">
+          <button class="maplibregl-draw_ctrl-draw-btn maplibregl-custom_ctrl-pitch" @click="setPitch">
             {{ isThree ? '2D' : '3D' }}
           </button>
-          <button @click="addRectangle" class="maplibregl-draw_ctrl-draw-btn maplibregl-draw_rect"></button>
-          <button @click="addPolygon" class="maplibregl-draw_ctrl-draw-btn maplibregl-draw_polygon"></button>
-          <button @click="trash" class="maplibregl-draw_ctrl-draw-btn maplibregl-draw_trash"></button>
+          <button class="maplibregl-draw_ctrl-draw-btn maplibregl-draw_rect" @click="addRectangle"></button>
+          <button class="maplibregl-draw_ctrl-draw-btn maplibregl-draw_polygon" @click="addPolygon"></button>
+          <button class="maplibregl-draw_ctrl-draw-btn maplibregl-draw_trash" @click="trash"></button>
         </div>
       </div>
-      <div class="maplibregl-area" :style="areaStyle" v-html="areatext"></div>
+      <div class="maplibregl-area" :style="areaStyle">
+        <p class="maplibregl-area_text">实时面积：{{ areatext }}</p>
+        <p class="maplibregl-area_text">限制面积： 2平方公里</p>
+      </div>
     </div>
   </div>
 </template>
@@ -20,14 +23,10 @@ import maplibregl from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { onMounted, ref, reactive } from 'vue';
 import area from '@turf/area';
-// import DrawRectangle from './draw-rectangle-mode';
-// import DrawRectangle from 'mapbox-gl-draw-rectangle-mode';
 import { DrawStyles, DrawPolygon, DrawRectangle } from '@/utils/mapbox-gl-draw';
-import { Constants } from '@/utils/mapbox-gl-draw/lib/constants';
-import constrainFeatureMovement from '@/utils/mapbox-gl-draw/lib/constrain_feature_movement';
 import CustomDraw from './custom-draw.js';
 
-import { OSM_STYLE, WMS_STYLE } from './line-style.js';
+// import { WMS_STYLE } from './line-style.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '@/assets/styles/mapbox-gl-draw.css';
 
@@ -49,7 +48,6 @@ const initMap = () => {
     minZoom: 0,
     maxZoom: 22,
     // renderWorldCopies: false, // 关闭地图重复渲染
-    style: WMS_STYLE,
     trackResize: true, // 自适应
     style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', // 使用适当的地图样式
     center: [119.313, 41.297], // 设置地图初始中心
@@ -75,10 +73,10 @@ const initMap = () => {
     // });
 
     // 设置地图视图范围（bbox）
-    var minLng = 119.29605865480914;
-    var minLat = 41.28998947164632;
-    var maxLng = 119.33184814377455;
-    var maxLat = 41.30484390258789;
+    const minLng = 119.29605865480914;
+    const minLat = 41.28998947164632;
+    const maxLng = 119.33184814377455;
+    const maxLat = 41.30484390258789;
 
     map.fitBounds([
       [minLng, minLat],
@@ -103,29 +101,32 @@ const initMap = () => {
       areaStyle.display = 'block';
     }
   });
-  const DirectModeOverride = MapboxDraw.modes.direct_select;
-  DirectModeOverride.dragVertex = function (state, e, delta) {
-    const geometry = state.feature.toGeoJSON().geometry;
-    const selectedCoords = state.selectedCoordPaths.map((coord_path) => state.feature.getCoordinate(coord_path));
-    const currentArea = area(geometry) / 1e6; // 将面积转换为平方千米
-
-    const selectedCoordPoints = selectedCoords.map((coords) => ({
-      type: Constants.geojsonTypes.FEATURE,
-      properties: {},
-      geometry: {
-        type: Constants.geojsonTypes.POINT,
-        coordinates: coords,
-      },
-    }));
-    const constrainedDelta = constrainFeatureMovement(selectedCoordPoints, delta);
-    for (let i = 0; i < selectedCoords.length; i++) {
-      const coord = selectedCoords[i];
-      state.feature.updateCoordinate(
-        state.selectedCoordPaths[i],
-        coord[0] + constrainedDelta.lng,
-        coord[1] + constrainedDelta.lat
-      );
+  const DirectSelect = MapboxDraw.modes.direct_select;
+  DirectSelect.onDrag = function (state, e) {
+    if (state.canDragMove !== true) return;
+    state.dragMoving = true;
+    e.originalEvent.stopPropagation();
+    const delta = {
+      lng: e.lngLat.lng - state.dragMoveLocation.lng,
+      lat: e.lngLat.lat - state.dragMoveLocation.lat,
+    };
+    if (state.selectedCoordPaths.length > 0) {
+      showArea = true;
+      const currentArea = area(state.feature);
+      areatext.value = `${Math.floor((currentArea / 1e6) * 100) / 100} 平方公里`;
+      if (currentArea > 2 * 1e6) {
+        state.feature.sizeExceeded = true;
+        state.feature.properties.size_exceed = true;
+      } else {
+        state.feature.sizeExceeded = false;
+        state.feature.properties.size_exceed = false;
+      }
+      this.dragVertex(state, e, delta);
+    } else {
+      this.dragFeature(state, e, delta);
     }
+
+    state.dragMoveLocation = e.lngLat;
   };
   customDraw = new CustomDraw({ map, draw, exceedCallback, areaChangedCallback });
 };
@@ -144,7 +145,8 @@ const exceedCallback = (areaValue) => {
 };
 const areaChangedCallback = (areaValue) => {
   showArea = true;
-  areatext.value = `${(areaValue / 1e6).toFixed(2)} 平方公理`;
+  const changeArea = areaValue / 1e6;
+  areatext.value = `${Math.floor(changeArea * 100) / 100} 平方公里`;
 };
 // 画完以后返回feature的json数据
 const finishDraw = () => {
@@ -197,6 +199,9 @@ onMounted(() => {
     padding: 2px 3px;
     pointer-events: none;
     display: none;
+    &_text {
+      white-space: nowrap;
+    }
   }
 }
 </style>
