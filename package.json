@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mapbox/geojson-extent": "^1.0.1",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@turf/area": "^6.5.0",
     "lodash-es": "^4.17.21",

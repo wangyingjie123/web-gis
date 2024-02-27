@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@mapbox/geojson-extent':
-    specifier: ^1.0.1
-    version: 1.0.1
   '@mapbox/mapbox-gl-draw':
     specifier: ^1.4.3
     version: 1.4.3
